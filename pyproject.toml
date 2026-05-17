@@ -1,0 +1,54 @@
+[build-system]
+requires      = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name            = "external-sort"
+version         = "1.0.0"
+description     = "External merge sort — sort arbitrarily large CSV files using bounded RAM. Mirrors Spark's shuffle sort."
+readme          = "README.md"
+license         = { text = "MIT" }
+requires-python = ">=3.9"
+keywords        = ["sort", "external-sort", "merge-sort", "spark", "data-engineering", "csv"]
+dependencies    = []   # pure stdlib — no runtime deps
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "black>=23.0",
+    "ruff>=0.1",
+]
+
+[project.scripts]
+external-sort          = "external_sort.cli:main"
+external-sort-generate = "external_sort.generator:main"
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/external-sort-dsa"
+Issues   = "https://github.com/YOUR_USERNAME/external-sort-dsa/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.pytest.ini_options]
+testpaths     = ["tests"]
+addopts       = "-v --tb=short"
+log_cli       = true
+log_cli_level = "WARNING"
+
+[tool.coverage.run]
+source = ["external_sort"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under   = 85
+
+[tool.black]
+line-length    = 100
+target-version = ["py39", "py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+select      = ["E", "F", "W", "I"]
+ignore      = ["E501"]

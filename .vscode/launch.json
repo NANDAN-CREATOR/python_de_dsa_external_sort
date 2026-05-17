@@ -1,0 +1,48 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Sort CSV (CLI)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "external_sort.cli",
+      "args": [
+        "--input",  "data/employees.csv",
+        "--output", "data/employees_sorted.csv",
+        "--column", "salary",
+        "--numeric",
+        "--chunk-size", "50000",
+        "--verbose"
+      ],
+      "env": { "PYTHONPATH": "${workspaceFolder}" },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Generate Data (1M rows)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "external_sort.generator",
+      "args": ["--rows", "1000000", "--output", "data/employees.csv", "--size-report"],
+      "env": { "PYTHONPATH": "${workspaceFolder}" },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Run All Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/", "-v"],
+      "env": { "PYTHONPATH": "${workspaceFolder}" },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug Current Test File",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["${file}", "-v", "-s"],
+      "env": { "PYTHONPATH": "${workspaceFolder}" },
+      "console": "integratedTerminal"
+    }
+  ]
+}

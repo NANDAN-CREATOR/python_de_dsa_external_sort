@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Test matrix across Python versions ─────────────────────────────────────
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install
+        run: |
+          pip install --upgrade pip
+          pip install pytest pytest-cov
+
+      - name: Run tests
+        run: |
+          PYTHONPATH=. pytest tests/ -v --cov=external_sort --cov-report=xml
+
+      - name: Upload coverage
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  # ── Benchmark smoke test ────────────────────────────────────────────────────
+  benchmark:
+    name: Benchmark smoke test
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate 100k row CSV
+        run: |
+          mkdir -p data
+          PYTHONPATH=. python -m external_sort.generator \
+            --rows 100000 --output data/bench.csv
+
+      - name: Sort with chunk-size=10000 (10 chunks)
+        run: |
+          PYTHONPATH=. python -m external_sort.cli \
+            --input data/bench.csv \
+            --output data/bench_sorted.csv \
+            --column salary --numeric \
+            --chunk-size 10000
+
+      - name: Verify output is correctly sorted
+        run: |
+          python -c "
+          import csv
+          with open('data/bench_sorted.csv') as f:
+              rows = list(csv.DictReader(f))
+          salaries = [int(r['salary']) for r in rows]
+          assert salaries == sorted(salaries), 'Output is NOT sorted!'
+          print(f'✅ {len(rows):,} rows correctly sorted')
+          "
